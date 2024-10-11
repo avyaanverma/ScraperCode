@@ -83,14 +83,14 @@ def extract_emails_from_site(website):
 # Input: Website to scrape
 website = input("Enter the website (e.g., vitbhopal.ac.in): ").strip()
 
-# Extract emails from the given website
+# Extract emails from the given website  for compaing :))
 emails, email_data = extract_emails_from_site(website)
 
 if emails:
     # Save the emails to an Excel file with sequential numbering
     df = pd.DataFrame(email_data)
     output_file = "extracted_emails_sequential.xlsx"
-    df.to_excel(output_file, index=False)
+    df.to_excel(output_file, index=False)     #False 
     print(f"\nEmails have been saved to {output_file}")
 else:
     print("No emails found.")

@@ -1,0 +1,104 @@
+import requests
+from bs4 import BeautifulSoup
+import re
+from urllib.parse import urljoin
+
+# Function to extract emails from a given text
+def extract_emails(text):
+    """
+    This function takes text content as input and uses a regular expression to find all valid email addresses.
+    It returns a list of all emails found in the text.
+    """
+    email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'  # Email regex pattern
+    emails = re.findall(email_pattern, text)  # Find all email matches in the text
+    return emails
+
+# Function to extract all URLs from the given base page
+def extract_urls(base_url):
+    """
+    This function takes a base URL, sends an HTTP request to the page, and extracts all the URLs present.
+    It returns a set of unique URLs found on the page.
+    """
+    try:
+        print(f"\nExtracting links from {base_url}...")
+        response = requests.get(base_url)  # Send HTTP request to the base URL
+        response.raise_for_status()  # Ensure the request was successful
+        soup = BeautifulSoup(response.text, 'html.parser')  # Parse the HTML content of the page
+        urls = set()  # Initialize an empty set to store unique URLs
+        for link in soup.find_all('a', href=True):  # Find all anchor tags with href attributes
+            full_url = urljoin(base_url, link['href'])  # Construct the full URL from the base and href
+            urls.add(full_url)  # Add the URL to the set
+        print(f"Found {len(urls)} URLs on the page.")
+        return urls
+    except Exception as e:
+        print(f"Error extracting URLs from {base_url}: {e}")
+        return set()  # Return an empty set if an error occurs
+
+# Function to scrape emails from a base website and its linked pages
+def scrape_website(base_url):
+    """
+    This function scrapes emails from the base URL itself and from all the URLs found on the base page.
+    It returns a set of all unique email addresses found.
+    """
+    all_emails = set()  # Initialize a set to store all unique emails found
+
+    # Scrape the base page for emails
+    print(f"\nStarting email extraction from: {base_url}")
+    try:
+        response = requests.get(base_url)  # Send an HTTP request to the base URL
+        if response.status_code == 200:  # If the request is successful
+            base_page_emails = extract_emails(response.text)  # Extract emails from the base page content
+            all_emails.update(base_page_emails)  # Add the emails to the set
+            print(f"Emails found on the base page: {base_page_emails}")
+        else:
+            print(f"Failed to access {base_url}, Status Code: {response.status_code}")
+    except Exception as e:
+        print(f"Error scraping {base_url}: {e}")
+
+    # Extract URLs from the base page
+    urls = extract_urls(base_url)
+
+    # Scrape each linked URL for emails
+    for url in urls:
+        try:
+            print(f"\nScraping linked URL: {url}")
+            response = requests.get(url)  # Send an HTTP request to the linked URL
+            if response.status_code == 200:  # If the request is successful
+                page_emails = extract_emails(response.text)  # Extract emails from the page content
+                all_emails.update(page_emails)  # Add the emails to the set
+                if page_emails:
+                    print(f"Emails found on {url}: {page_emails}")
+                else:
+                    print(f"No emails found on {url}.")
+            else:
+                print(f"Failed to access {url}, Status Code: {response.status_code}")
+        except Exception as e:
+            print(f"Error scraping {url}: {e}")
+    
+    return all_emails  # Return the set of unique emails
+
+# Function to display emails in a structured format
+def display_emails(emails, base_url):
+    """
+    This function displays the emails found on the website and its linked pages in a structured format.
+    """
+    if emails:
+        print(f"\nTotal {len(emails)} unique email(s) found on {base_url} and its linked pages:")
+        for i, email in enumerate(emails, start=1):
+            print(f"{i}. {email}")
+    else:
+        print(f"\nNo emails were found on {base_url} or its linked pages.")
+
+# Main program execution
+if __name__ == "__main__":
+    # Input: Website to scrape
+    website = input("Enter the website URL (e.g., https://vitbhopal.ac.in): ").strip()
+
+    if not website.startswith('http'):
+        website = 'https://' + website  # Ensure the URL has a valid scheme (http or https)
+
+    # Scrape the website for emails
+    emails = scrape_website(website)
+
+    # Output the results in a human-readable format
+    display_emails(emails, website)

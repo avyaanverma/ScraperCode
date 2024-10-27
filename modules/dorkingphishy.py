@@ -7,6 +7,12 @@ Original file is located at
     https://colab.research.google.com/drive/1djuzKnb_BedEDPnOi9d833LVxqemGNDe
 """
 
+"""
+emails extract --- verify --- verified 5 emails informaion extract 
+Profiling
+
+"""
+#importing required libraries :)
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -83,14 +89,14 @@ def extract_emails_from_site(website):
 # Input: Website to scrape
 website = input("Enter the website (e.g., vitbhopal.ac.in): ").strip()
 
-# Extract emails from the given website  for compaing :))
+# Extract emails from the given website  for comparing :))
 emails, email_data = extract_emails_from_site(website)
 
 if emails:
     # Save the emails to an Excel file with sequential numbering
     df = pd.DataFrame(email_data)
     output_file = "extracted_emails_sequential.xlsx"
-    df.to_excel(output_file, index=False)     #False 
+    df.to_excel(output_file, index=False) #False 
     print(f"\nEmails have been saved to {output_file}")
 else:
     print("No emails found.")

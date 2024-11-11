@@ -1,6 +1,6 @@
 import blindPhish as bp
 import pandas as pd
-import emailverifier
+import emailverifier as ev
 import sys
 sys.path.append("D:\\Code\\SecurityCodes\\LocalScraper\\modules")
 from banner_bash import banner_bash
@@ -25,10 +25,11 @@ if __name__=="__main__":
     df.to_excel(filename, index=False)
 
 
-# read an excel file
+# Email Verification
+for index,row in df.iterrows():
+    if not (ev.verify_email(row['Email'])):
+      df.drop(index, inplace=True)
 
-
-# convert excel file to dataframe 
 
 # apply the functions to the dataframe
 

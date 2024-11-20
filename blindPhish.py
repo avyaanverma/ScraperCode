@@ -56,32 +56,34 @@ def crawl(seed_url, max_urls=100):
 
     return urls
 
+
 # Function to fetch email addresses from a given URL
 def fetch_emails_from_url(url):
-    """
-    Extracts email addresses from the content of a given URL.
-
-    Parameters:
-        url (str): The URL to scrape for email addresses.
-
-    Returns:
-        list: A list of found email addresses.
-    """
     try:
+        # Fetch the content of the web page
         response = requests.get(url)
-        response.raise_for_status()
+        response.raise_for_status()  # Raise an error for bad responses
 
+        # Parse the HTML content using BeautifulSoup
         soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Find all text content on the page
         text = soup.get_text()
 
-        # Regex pattern to find emails
+        # Regular expression pattern to extract emails
         email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+
+        # Find all matching email addresses
         emails = re.findall(email_pattern, text)
 
-        return list(set(emails))  # Return unique emails
+        # Remove duplicates by converting the list to a set and back to a list
+        unique_emails = list(set(emails))
+        for email in unique_emails:
+            print(email)
+        return unique_emails
 
     except requests.RequestException as e:
-        print(f"Error fetching : {e}")
+        print(f"Error fetching {url}: {e}")
         return []
 
 # Function to fetch emails using Google Custom Search API
@@ -97,6 +99,7 @@ def extract_emails_from_site(website, apiKey, sessionId):
     Returns:
         dict: JSON response from the Google API with search results.
     """
+    
     # print(f"Finding indexed pages for: {website}")
     query = f'intext:"@{website}" site:{website}'
     headers = {
@@ -149,60 +152,47 @@ def process_extracted_emails(text, website):
 
     return list(set(all_emails))  # Return unique emails
 
-# Function to save emails to an Excel file
-def save_emails_to_excel(emails, filename='emails.xlsx'):
-    """
-    Saves the list of emails to an Excel file.
-
-    Parameters:
-        emails (list): List of email addresses.
-        filename (str): The filename for the Excel file.
-    """
-    df = pd.DataFrame(emails, columns=['Email'])
-    df.to_excel(filename, index=False)
-    print(f"Emails saved to {filename}")
-
 # Main script
-if __name__ == "__main__":
-    str = banner_bash("BlindScraper")
-    print(str)
-    # API credentials from .env file
-    api_key = os.getenv("Your_Google_API_KEY")
-    search_engine_id = os.getenv("SESSION_ID")
+# if __name__ == "__main__":
+#     str = banner_bash("BlindScraper")
+#     print(str)
+#     # API credentials from .env file
+#     api_key = os.getenv("Your_Google_API_KEY")
+#     search_engine_id = os.getenv("SESSION_ID")
 
-    # Inputting user's emails
-    website = input("Enter the domain for the website:  ")
+#     # Inputting user's emails
+#     website = input("Enter the domain for the website:  ")
     
-    #  Scraper Code for crawler and scraper
-    url = f"https://{website}"
-    found_urls = crawl(url)
-    # Fetch emails
-    emails_code = []
-    for url in found_urls:
-        emails_code = fetch_emails_from_url(url)
+#     #  Scraper Code for crawler and scraper
+#     url = f"https://{website}"
+#     found_urls = crawl(url)
+#     # Fetch emails
+#     emails_code = []
+#     for url in found_urls:
+#         emails_code = fetch_emails_from_url(url)
 
-    # Search Results from Google
-    search_results = extract_emails_from_site(website, api_key, search_engine_id)
+#     # Search Results from Google
+#     search_results = extract_emails_from_site(website, api_key, search_engine_id)
     
-    emails_dorking = []
-    if search_results:
-        emails = process_extracted_emails(search_results, website)
-        if emails:
-            print(f"Emails found:")
-            for email in emails:
-                print(email)
-            emails_dorking = emails
-    print(emails_code)
-    emails = emails_dorking+emails_code
-    emails = list(set(emails))
-    print(emails)
-    # Save emails to Excel file            
-    save_emails_to_excel(emails)
+#     emails_dorking = []
+#     if search_results:
+#         emails = process_extracted_emails(search_results, website)
+#         if emails:
+#             print(f"Emails found:")
+#             for email in emails:
+#                 print(email)
+#             emails_dorking = emails
+#     print(emails_code)
+#     emails = emails_dorking+emails_code
+#     emails = list(set(emails))
+#     print(emails)
+#     # Save emails to Excel file            
+#     save_emails_to_excel(emails)
 
-    # Save emails to CSV file
-    with open('emails.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Emails"])
-        # Writing each email as a new row in the CSV file
-        for e in emails:
-            writer.writerow([e])
+#     # Save emails to CSV file
+#     with open('emails.csv', mode='w', newline='') as file:
+#         writer = csv.writer(file)
+#         writer.writerow(["Emails"])
+#         # Writing each email as a new row in the CSV file
+#         for e in emails:
+#             writer.writerow([e])
